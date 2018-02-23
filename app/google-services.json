@@ -1,0 +1,107 @@
+{
+  "project_info": {
+    "project_number": "1082715295392",
+    "firebase_url": "https://my-safety-f8b28.firebaseio.com",
+    "project_id": "my-safety-f8b28",
+    "storage_bucket": "my-safety-f8b28.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1082715295392:android:0a11b698af25f790",
+        "android_client_info": {
+          "package_name": "com.example.raghvendra.mysafety"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1082715295392-9fkceqd9hvok67ibcjc543r9pm627ndb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.raghvendra.mysafety",
+            "certificate_hash": "d0796fd6404c0990badfba026793dbece0a5f41a"
+          }
+        },
+        {
+          "client_id": "1082715295392-mebrn11hg1nrqvdhsdqb9be2e7d02hlh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.raghvendra.mysafety",
+            "certificate_hash": "b11e5c203aefb6eabfcaf9fa075b28faab790ec2"
+          }
+        },
+        {
+          "client_id": "1082715295392-csmee68ir5ceqqp0b81e863f2opnopgt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4d3LcdIPBraXPWAmEBkmp7xwWT9Vz8Z8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1082715295392-csmee68ir5ceqqp0b81e863f2opnopgt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1082715295392:android:36f056a9ef38f885",
+        "android_client_info": {
+          "package_name": "com.example.android.policetrackingapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1082715295392-tgb96r5bv3jlqb8bja9nemqgmlovb96f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.android.policetrackingapp",
+            "certificate_hash": "d0796fd6404c0990badfba026793dbece0a5f41a"
+          }
+        },
+        {
+          "client_id": "1082715295392-csmee68ir5ceqqp0b81e863f2opnopgt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4d3LcdIPBraXPWAmEBkmp7xwWT9Vz8Z8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1082715295392-csmee68ir5ceqqp0b81e863f2opnopgt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
