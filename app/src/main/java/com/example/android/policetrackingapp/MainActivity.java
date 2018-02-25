@@ -111,7 +111,6 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         myRef = mFirebaseDatabase.getReference().child("DATA");
         arraystore=new ArrayList<>();
-        List<Current_Location>  Current_long=new ArrayList<>();
 
         mAuthStateListener= new FirebaseAuth.AuthStateListener() {
             @Override
@@ -210,6 +209,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
 
            private void showData(DataSnapshot dataSnapshot) {
+               Current_long=new ArrayList<>();
+               int i=0;
         for(DataSnapshot ds : dataSnapshot.getChildren()){
             Current_Location uInfo = ds.getValue(Current_Location.class);
 
@@ -222,26 +223,26 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             arraystore.add(uInfo.getLatitude());
             arraystore.add(uInfo.getLongitude());
 
-              Current_long=new ArrayList<>();
+
             Current_long.add(new Current_Location(uInfo.getLongitude(),uInfo.getLatitude()));
-            Current_Location location=Current_long.get(0);
+            Current_Location location=Current_long.get(i);
             String lon=location.getLongitude();
             String lat=location.getLatitude();
             Log.v("MainActivity",lat+"  "+lon);
 
+            i++;
 
-            ArrayAdapter adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,arraystore);
-            mListView.setAdapter(adapter);
         }
-
+               ArrayAdapter adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,arraystore);
+               mListView.setAdapter(adapter);
 
     }
 
 
 
     public  static  LatLng getCurrentLat_Long(){
-
-        Current_Location location=Current_long.get(0);
+        int size=Current_long.size();
+        Current_Location location=Current_long.get(size-1);
         LatLng latLng=new LatLng(Double.parseDouble(location.getLatitude())
                 ,Double.parseDouble(location.getLongitude()));
         return latLng;
