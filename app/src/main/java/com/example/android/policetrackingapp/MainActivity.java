@@ -10,6 +10,11 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -24,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.android.policetrackingapp.Map.MapActivity;
@@ -49,7 +55,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity  implements NavigationView.OnNavigationItemSelectedListener,OnMapReadyCallback,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,LocationListener
+public class MainActivity extends AppCompatActivity  implements NavigationView.OnNavigationItemSelectedListener,OnMapReadyCallback,GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,LocationListener,DataDisplayAdapter.DataDisplayAdapterOnClickHandler
+
        {
 
            public static final String ANONYMOUS="anonymous";
@@ -57,6 +65,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     private static final String TAG = "ViewDatabase";
     private  static  LatLng current;
+    private  static ArrayList<Current_Location> arrayList;
 
     //add Firebase Database stuff
     private FirebaseDatabase mFirebaseDatabase;
@@ -71,13 +80,70 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     int count=0;
     static  double  mlatitude;
     static double mlongitude;
+    static  double  mlatitude_tar;
+    static double mlongitude_tar;
     private static final int LOCATION_REQUEST = 500;
+    private static final int ID_FORECAST_LOADER = 44;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
+    private RecyclerView mRecyclerView;
+    private DataDisplayAdapter madapter;
+           private int mPosition = RecyclerView.NO_POSITION;
+           private ProgressBar mLoadingIndicator;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mFirebseAuth=FirebaseAuth.getInstance();
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        myRef = mFirebaseDatabase.getReference().child("DATA");
+
+        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_forecast);
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
+        LinearLayoutManager layoutManager =
+                new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setHasFixedSize(true);
+       madapter=new DataDisplayAdapter(this,this);
+       mLoadingIndicator.setVisibility(View.VISIBLE);
+       mRecyclerView.setVisibility(View.INVISIBLE);
+
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                arrayList=new ArrayList<Current_Location>();
+                int i=0;
+                for(DataSnapshot ds : dataSnapshot.getChildren()){
+                    Current_Location uInfo = ds.getValue(Current_Location.class);
+                    arrayList.add(uInfo);
+
+                    i++;
+                }
+                madapter.setUserdata(arrayList);
+                mRecyclerView.setAdapter(madapter);
+                mLoadingIndicator.setVisibility(View.INVISIBLE);
+                mRecyclerView.setVisibility(View.VISIBLE);
+                int size=arrayList.size();
+                Current_Location location=arrayList.get(size-1);
+                mlatitude_tar=Double.parseDouble(location.getLatitude());
+                mlongitude_tar=Double.parseDouble(location.getLongitude());
+
+            }
+
+
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+
+
+        });
+
+
+
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mGoogleApiClient =new GoogleApiClient.Builder(this)
@@ -106,11 +172,9 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
         //LayoutInflater inflater=(LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         //View view=inflater.inflate(R.layout.content_main,null);
-        mListView =findViewById(R.id.listview);
-        mFirebseAuth=FirebaseAuth.getInstance();
-        mFirebaseDatabase = FirebaseDatabase.getInstance();
-        myRef = mFirebaseDatabase.getReference().child("DATA");
-        arraystore=new ArrayList<>();
+
+
+
 
         mAuthStateListener= new FirebaseAuth.AuthStateListener() {
             @Override
@@ -135,28 +199,6 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                 }
             }
         };
-
-
-
-
-
-
-
-
-
-       myRef.addValueEventListener(new ValueEventListener() {
-           @Override
-           public void onDataChange(DataSnapshot dataSnapshot) {
-
-               showData(dataSnapshot);
-           }
-
-           @Override
-           public void onCancelled(DatabaseError databaseError) {
-
-           }
-       });
-
 
 
 
@@ -208,43 +250,14 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
            }
 
 
-           private void showData(DataSnapshot dataSnapshot) {
-               Current_long=new ArrayList<>();
-               int i=0;
-        for(DataSnapshot ds : dataSnapshot.getChildren()){
-            Current_Location uInfo = ds.getValue(Current_Location.class);
 
-            //display all the information
-            Log.d(TAG, "showData: name: " + uInfo.getLatitude());
-            Log.d(TAG, "showData: email: " + uInfo.getLongitude());
-            Log.d(TAG, "showData: phone_num: " + uInfo.getMail_id());
-
-            arraystore.add(uInfo.getMail_id());
-            arraystore.add(uInfo.getLatitude());
-            arraystore.add(uInfo.getLongitude());
-
-
-            Current_long.add(new Current_Location(uInfo.getLongitude(),uInfo.getLatitude()));
-            Current_Location location=Current_long.get(i);
-            String lon=location.getLongitude();
-            String lat=location.getLatitude();
-            Log.v("MainActivity",lat+"  "+lon);
-
-            i++;
-
-        }
-               ArrayAdapter adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,arraystore);
-               mListView.setAdapter(adapter);
-
-    }
 
 
 
     public  static  LatLng getCurrentLat_Long(){
-        int size=Current_long.size();
-        Current_Location location=Current_long.get(size-1);
-        LatLng latLng=new LatLng(Double.parseDouble(location.getLatitude())
-                ,Double.parseDouble(location.getLongitude()));
+
+        LatLng latLng=new LatLng(mlatitude_tar
+                ,mlongitude_tar);
         return latLng;
        /* ArrayList<HashMap<Double,Double>>Location_double=new ArrayList<>();
         HashMap<Double,Double> latlngDou=new HashMap<>();
@@ -262,6 +275,13 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     }
 
+           private void showLoading() {
+        /* Then, hide the weather data */
+               mRecyclerView.setVisibility(View.INVISIBLE);
+        /* Finally, show the loading indicator */
+               mLoadingIndicator.setVisibility(View.VISIBLE);
+           }
+
 
 
            @Override
@@ -270,6 +290,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                inflater.inflate(R.menu.main_menu,menu);
                return true;
            }
+
 
            @Override
            public boolean onOptionsItemSelected(MenuItem item) {
@@ -377,5 +398,14 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
            protected void onStop() {
                mGoogleApiClient.disconnect();
                super.onStop();
+           }
+
+
+           @Override
+           public void onClick(LatLng latLng) {
+           mlatitude_tar=latLng.latitude;
+           mlongitude_tar=latLng.longitude;
+           Toast.makeText(getApplicationContext(),"Location is set",Toast.LENGTH_LONG).show();
+
            }
        }
