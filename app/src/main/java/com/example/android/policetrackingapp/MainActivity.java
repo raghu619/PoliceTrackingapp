@@ -1,8 +1,12 @@
 package com.example.android.policetrackingapp;
 
+import android.*;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,13 +14,10 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
+
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.LayoutInflater;
+
 import android.view.MenuInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -49,10 +50,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.example.android.policetrackingapp.Data.DetailsContract;
+import com.example.android.policetrackingapp.Data.PersonDetailsDBHelper;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity  implements NavigationView.OnNavigationItemSelectedListener,OnMapReadyCallback,GoogleApiClient.ConnectionCallbacks,
@@ -62,9 +66,13 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
            public static final String ANONYMOUS="anonymous";
            public static final int RC_SIGN_IN = 1;
-
+           private SQLiteDatabase mDb;
+           private Cursor mCursor;
+           private  static FirebaseUser user;
+           private String Phone_no;
+           private String Username;
     private static final String TAG = "ViewDatabase";
-    private  static  LatLng current;
+
     private  static ArrayList<Current_Location> arrayList;
 
     //add Firebase Database stuff
@@ -90,10 +98,17 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     private DataDisplayAdapter madapter;
            private int mPosition = RecyclerView.NO_POSITION;
            private ProgressBar mLoadingIndicator;
+           private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0 ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions((Activity) this, new String[]{android.Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_SMS);
+
+
+            return;
+        }
         mFirebseAuth=FirebaseAuth.getInstance();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         myRef = mFirebaseDatabase.getReference().child("DATA");
@@ -107,38 +122,10 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
        madapter=new DataDisplayAdapter(this,this);
        mLoadingIndicator.setVisibility(View.VISIBLE);
        mRecyclerView.setVisibility(View.INVISIBLE);
-
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                arrayList=new ArrayList<Current_Location>();
-                int i=0;
-                for(DataSnapshot ds : dataSnapshot.getChildren()){
-                    Current_Location uInfo = ds.getValue(Current_Location.class);
-                    arrayList.add(uInfo);
-
-                    i++;
-                }
-                madapter.setUserdata(arrayList);
-                mRecyclerView.setAdapter(madapter);
-                mLoadingIndicator.setVisibility(View.INVISIBLE);
-                mRecyclerView.setVisibility(View.VISIBLE);
-                int size=arrayList.size();
-                Current_Location location=arrayList.get(size-1);
-                mlatitude_tar=Double.parseDouble(location.getLatitude());
-                mlongitude_tar=Double.parseDouble(location.getLongitude());
-
-            }
+       Display_data();
 
 
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-
-
-        });
 
 
 
@@ -170,6 +157,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+
         //LayoutInflater inflater=(LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         //View view=inflater.inflate(R.layout.content_main,null);
 
@@ -179,12 +167,21 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         mAuthStateListener= new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user=firebaseAuth.getCurrentUser();
+                 user=firebaseAuth.getCurrentUser();
                 if(user!=null){
 
                     UserId =user.getEmail();
-                    Toast.makeText(MainActivity.this,"You're now signed in. Welcome to My Safety app .",Toast.LENGTH_SHORT).show();
-                }
+                    String compare1=getForm(UserId);
+
+                    if(compare1.equals("") ){
+
+                        Intent intent=new Intent(MainActivity.this,FormActivity.class);
+                        startActivity(intent);
+                    }
+                    else {
+                        Toast.makeText(MainActivity.this, "You're now signed in. Welcome to My Safety app .", Toast.LENGTH_SHORT).show();
+                    }
+                   }
                 else {
                     startActivityForResult(
                             AuthUI.getInstance()
@@ -239,6 +236,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
            protected void onResume() {
                super.onResume();
                mFirebseAuth.addAuthStateListener(mAuthStateListener);
+               Display_data();
            }
            @Override
            protected void onPause() {
@@ -311,6 +309,34 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
 
 
+           private String getForm(String UserId){
+               PersonDetailsDBHelper dbHelper=new PersonDetailsDBHelper(MainActivity.this);
+               mDb=dbHelper.getReadableDatabase();
+               String compare="";
+               mCursor=mDb.query(DetailsContract.DetailsEntry.TABLE_NAME,new String[]{DetailsContract.DetailsEntry.EMAIL_ADD,DetailsContract.DetailsEntry.PHONE_NO},
+                       DetailsContract.DetailsEntry.EMAIL_ADD+" = ? ",new String[]{UserId},null,null,null);
+               if(mCursor.getCount()>0){
+                   mCursor.moveToFirst();
+
+                   compare= mCursor.getString((mCursor.getColumnIndex(DetailsContract.DetailsEntry.EMAIL_ADD)));
+                   Phone_no=mCursor.getString(mCursor.getColumnIndex(DetailsContract.DetailsEntry.PHONE_NO));
+                   return  compare;
+               }
+
+               else {
+
+                   return compare;
+               }
+
+
+
+
+
+           }
+
+
+
+
 
            @SuppressWarnings("StatementWithEmptyBody")
            @Override
@@ -349,15 +375,6 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                    return;
 
                    // TODO: Consider calling
-                   //    ActivityCompat#requestPermissions
-                   // here to request the missing permissions, and then overriding
-                   //public void onRequestPermissionsResult(int requestCode,  String[] permissions,
-                   //                                 int[] grantResults){
-
-                   // }
-
-                   // to handle the case where the user grants the permission. See the documentation
-                   // for ActivityCompat#requestPermissions for more details.
 
                }
                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
@@ -388,6 +405,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
            }
 
+
+
            @Override
            protected void onStart() {
         mGoogleApiClient.connect();
@@ -408,4 +427,49 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
            Toast.makeText(getApplicationContext(),"Location is set",Toast.LENGTH_LONG).show();
 
            }
+
+
+           public static  FirebaseUser getUserdetails(){
+
+
+               return user;
+
+           }
+
+           private void Display_data(){
+               myRef.addValueEventListener(new ValueEventListener() {
+                   @Override
+                   public void onDataChange(DataSnapshot dataSnapshot) {
+                       arrayList=new ArrayList<Current_Location>();
+                       int i=0;
+                       for(DataSnapshot ds : dataSnapshot.getChildren()){
+                           Current_Location uInfo = ds.getValue(Current_Location.class);
+                           arrayList.add(uInfo);
+
+                           i++;
+                       }
+                       madapter.setUserdata(arrayList);
+                       mRecyclerView.setAdapter(madapter);
+                       mLoadingIndicator.setVisibility(View.INVISIBLE);
+                       mRecyclerView.setVisibility(View.VISIBLE);
+                       int size=arrayList.size();
+                       Current_Location location=arrayList.get(size-1);
+                       mlatitude_tar=Double.parseDouble(location.getLatitude());
+                       mlongitude_tar=Double.parseDouble(location.getLongitude());
+
+                   }
+
+
+
+                   @Override
+                   public void onCancelled(DatabaseError databaseError) {
+
+                   }
+
+
+               });
+
+
+           }
+
        }
