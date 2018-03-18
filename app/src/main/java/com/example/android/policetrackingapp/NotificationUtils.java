@@ -13,6 +13,12 @@ import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+
 /**
  * Created by raghvendra on 24/2/18.
  */
@@ -20,6 +26,11 @@ import android.support.v4.content.ContextCompat;
 public class NotificationUtils {
 
     private static final int WATER_REMINDER_NOTIFICATION_ID = 1138;
+    private static Query query;
+    private  static Police_data  policedata;
+    private static FirebaseDatabase mFirebaseDatabase;
+    private  static  String address;
+
     /**
      * This pending intent id is used to uniquely reference the pending intent
      */
@@ -37,9 +48,9 @@ public class NotificationUtils {
                 .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
                 .setSmallIcon(R.drawable.ic_drink_notification)
                 .setLargeIcon(largeIcon(context))
-                .setContentTitle("This just testing ")
+                .setContentTitle("Need Help")
                 .setContentText(message)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText("This just testing "))
+                .setStyle(new NotificationCompat.BigTextStyle().bigText("Need Help"))
                 .setDefaults(Notification.DEFAULT_VIBRATE)
                 .setContentIntent(contentIntent(context))
 
@@ -63,5 +74,45 @@ public class NotificationUtils {
         Resources res = context.getResources();
         Bitmap largeIcon = BitmapFactory.decodeResource(res, R.drawable.ic_local_drink_black_24px);
         return largeIcon;
+    }
+
+
+    public static  String get_Address(String email){
+        mFirebaseDatabase=FirebaseDatabase.getInstance();
+
+        query = mFirebaseDatabase.getReference().child("POLICE_DATA").orderByChild("memail").equalTo(email);
+
+        query.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                policedata = (Police_data) dataSnapshot.getValue(Police_data.class);
+                address =policedata.getMaddress();
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                policedata = (Police_data) dataSnapshot.getValue(Police_data.class);
+                address =policedata.getMaddress();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        return address;
+
     }
 }

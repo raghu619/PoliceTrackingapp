@@ -23,7 +23,7 @@ public class DataDisplayAdapter  extends RecyclerView.Adapter<DataDisplayAdapter
 
 
     public interface DataDisplayAdapterOnClickHandler {
-        void onClick(LatLng latLng);
+        void onClick(Current_Location location);
     }
 
     @Override
@@ -40,6 +40,7 @@ public class DataDisplayAdapter  extends RecyclerView.Adapter<DataDisplayAdapter
         holder.Emailview.setText(mCurrentdata.getMail_id());
         holder.Addressview.setText(mCurrentdata.getMaddress());
         holder.Timeview.setText(mCurrentdata.getMtime());
+        holder.StatusView.setText(mCurrentdata.getMstatus());
 
     }
 
@@ -63,6 +64,7 @@ public class DataDisplayAdapter  extends RecyclerView.Adapter<DataDisplayAdapter
       final  TextView Emailview;
       final  TextView Addressview;
       final  TextView Timeview;
+      final  TextView StatusView;
 
 
         public DataDisplayAdapterViewHolder(View itemView) {
@@ -70,17 +72,17 @@ public class DataDisplayAdapter  extends RecyclerView.Adapter<DataDisplayAdapter
             Emailview=itemView.findViewById(R.id.emailtext);
             Addressview=itemView.findViewById(R.id.addresstext);
             Timeview=itemView.findViewById(R.id.timetext);
+            StatusView=itemView.findViewById(R.id.statusview);
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
               int adapterPosition = getAdapterPosition();
-            Current_Location location=arrayList.get(adapterPosition);
-            LatLng latLng=new LatLng(Double.parseDouble(location.getLatitude())
-                    ,Double.parseDouble(location.getLongitude()));
+            mCurrentdata=arrayList.get(adapterPosition);
 
-            mClickHandler.onClick(latLng);
+
+            mClickHandler.onClick(mCurrentdata);
 
 
         }

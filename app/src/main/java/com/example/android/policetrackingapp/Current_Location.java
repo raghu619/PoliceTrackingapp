@@ -13,6 +13,7 @@ public  class Current_Location {
     private  String mphone_no;
     private  String  musername;
     private  String  muid;
+    private  String mstatus;
 
 
 
@@ -27,14 +28,16 @@ public  class Current_Location {
         this.latitude=latitude;
 
     }
-    public Current_Location(String longitude,String latitude,String mail_id,String address)
+    public Current_Location(String longitude,String latitude,String mail_id,String address,String status)
     {
         this.longitude=longitude;
         this.latitude=latitude;
         this.mail_id=mail_id;
         this.maddress=address;
+        this.mstatus=status;
     }
-    public Current_Location(String longitude,String latitude,String mail_id,String address,String time,String Phone_no,String Username,String uid)
+
+    public Current_Location(String longitude,String latitude,String mail_id,String address,String time,String Phone_no,String Username,String uid,String status)
     {
         this.longitude=longitude;
         this.latitude=latitude;
@@ -44,12 +47,18 @@ public  class Current_Location {
         this.mphone_no=Phone_no;
         this.musername=Username;
         this.muid=uid;
+        this.mstatus=status;
     }
 
     public  String getLongitude(){
 
         return longitude;
 
+    }
+
+    public String getMstatus(){
+
+        return mstatus;
     }
 
     public String getMuid(){
@@ -134,6 +143,14 @@ public  class Current_Location {
 
         this.mphone_no=Phone_no;
     }
+
+
+    public void setMstatus(String status){
+
+        this.mstatus=status;
+    }
+
+
 
 
 }

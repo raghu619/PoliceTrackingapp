@@ -7,7 +7,7 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="163dp"
+        android:layout_height="250dp"
         >
 
         <TextView
@@ -91,6 +91,30 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@color/cast_intro_overlay_background_color" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="92dp"
+        android:layout_height="27dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="4dp"
+        android:text="Status: "
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView6"
+        android:layout_marginLeft="32dp"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/statusview"
+        android:layout_width="220dp"
+        android:layout_height="72dp"
+        android:layout_marginStart="8dp"
+        android:gravity="center"
+        android:singleLine="false"
+        app:layout_constraintStart_toEndOf="@+id/textView3"
+        app:layout_constraintTop_toBottomOf="@+id/timetext"
+        tools:text="Accepted by Raghu from Mahim Branch Mumbai"
+        android:layout_marginLeft="8dp" />
 
 
 </android.support.constraint.ConstraintLayout>
