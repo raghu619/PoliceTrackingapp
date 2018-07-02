@@ -8,6 +8,8 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="250dp"
+        android:background="@drawable/today_touch_selector"
+
         >
 
         <TextView
@@ -19,6 +21,7 @@
             android:layout_marginTop="16dp"
             android:gravity="center"
             android:text="Email  :"
+            android:fontFamily="sans-serif-smallcaps"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -29,6 +32,7 @@
             android:layout_marginLeft="12dp"
             android:layout_marginStart="12dp"
             android:layout_marginTop="20dp"
+            android:fontFamily="sans-serif-smallcaps"
             app:layout_constraintStart_toEndOf="@+id/textView2"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="rgkoduri@gmail.com" />
@@ -41,6 +45,7 @@
         android:layout_marginTop="4dp"
         android:gravity="center"
         android:text="Address :"
+        android:fontFamily="sans-serif-smallcaps"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2"
         android:layout_marginLeft="32dp" />
@@ -52,7 +57,7 @@
 
         android:layout_marginTop="8dp"
         android:gravity="center"
-
+        android:fontFamily="sans-serif-smallcaps"
         android:singleLine="false"
         android:text="Samrat Ashok nagar ulhasnagar 421003"
         app:layout_constraintStart_toEndOf="@+id/textView4"
@@ -67,20 +72,20 @@
             android:layout_marginTop="4dp"
             android:gravity="center"
             android:text="Time :"
+            android:fontFamily="sans-serif-smallcaps"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
-        <TextView
-            android:id="@+id/timetext"
-            android:layout_width="214dp"
-            android:layout_height="38dp"
-            android:layout_marginLeft="8dp"
+    <TextView
+        android:id="@+id/timetext"
+        android:layout_width="214dp"
+        android:layout_height="38dp"
 
-            android:layout_marginStart="8dp"
-            android:gravity="center"
-            app:layout_constraintStart_toEndOf="@+id/textView6"
-            app:layout_constraintTop_toBottomOf="@+id/addresstext"
-            tools:text="12 jun 12:10" />
+        android:gravity="center"
+        android:fontFamily="sans-serif-smallcaps"
+        app:layout_constraintStart_toEndOf="@+id/textView6"
+        app:layout_constraintTop_toBottomOf="@+id/addresstext"
+        tools:text="12 jun 12:10" />
 
     <ImageView
         android:id="@+id/imageView2"
@@ -90,6 +95,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        android:fontFamily="sans-serif-smallcaps"
         app:srcCompat="@color/cast_intro_overlay_background_color" />
 
     <TextView
@@ -102,6 +108,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView6"
         android:layout_marginLeft="32dp"
+        android:fontFamily="sans-serif-smallcaps"
         android:gravity="center"/>
 
     <TextView
@@ -114,6 +121,7 @@
         app:layout_constraintStart_toEndOf="@+id/textView3"
         app:layout_constraintTop_toBottomOf="@+id/timetext"
         tools:text="Accepted by Raghu from Mahim Branch Mumbai"
+        android:fontFamily="sans-serif-smallcaps"
         android:layout_marginLeft="8dp" />
 
 

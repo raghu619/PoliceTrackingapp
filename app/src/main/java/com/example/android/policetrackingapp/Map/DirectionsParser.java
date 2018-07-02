@@ -16,6 +16,9 @@ import java.util.List;
 
 public class DirectionsParser {
 
+    private static String distance="";
+    private static String duration="";
+
 
     public List<List<HashMap<String, String>>> parse(JSONObject jObject) {
 
@@ -32,6 +35,11 @@ public class DirectionsParser {
             for (int i = 0; i < jRoutes.length(); i++) {
                 jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
                 List path = new ArrayList<HashMap<String,String>>();
+                JSONObject jsonLeg =  jLegs.getJSONObject(0);
+                JSONObject jsonDistance = jsonLeg.getJSONObject("distance");
+                JSONObject jsonDuration = jsonLeg.getJSONObject("duration");
+                distance=jsonDistance.getString("value");
+                duration=jsonDuration.getString("value");
 
                 //Loop for all legs
                 for (int j = 0; j < jLegs.length(); j++) {

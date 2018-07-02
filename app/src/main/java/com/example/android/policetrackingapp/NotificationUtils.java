@@ -46,11 +46,11 @@ public class NotificationUtils {
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context,WATER_REMINDER_NOTIFICATION_CHANNEL_ID)
                 .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
-                .setSmallIcon(R.drawable.ic_drink_notification)
+                .setSmallIcon(R.drawable.ic_launcherp)
                 .setLargeIcon(largeIcon(context))
                 .setContentTitle("Need Help")
                 .setContentText(message)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText("Need Help"))
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                 .setDefaults(Notification.DEFAULT_VIBRATE)
                 .setContentIntent(contentIntent(context))
 
@@ -72,7 +72,7 @@ public class NotificationUtils {
     }
     private static Bitmap largeIcon(Context context) {
         Resources res = context.getResources();
-        Bitmap largeIcon = BitmapFactory.decodeResource(res, R.drawable.ic_local_drink_black_24px);
+        Bitmap largeIcon = BitmapFactory.decodeResource(res, R.drawable.ic_launcherp);
         return largeIcon;
     }
 

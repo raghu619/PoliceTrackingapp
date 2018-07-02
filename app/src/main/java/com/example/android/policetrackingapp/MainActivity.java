@@ -1,8 +1,10 @@
 package com.example.android.policetrackingapp;
 
-import android.*;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -32,13 +34,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.example.android.policetrackingapp.Map.DistanceMap;
 import com.example.android.policetrackingapp.Map.MapActivity;
 import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -47,6 +50,9 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -60,11 +66,11 @@ import com.example.android.policetrackingapp.Data.DetailsContract;
 import com.example.android.policetrackingapp.Data.PersonDetailsDBHelper;
 
 
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import java.util.List;
+import java.util.concurrent.Executor;
 
 public class MainActivity extends AppCompatActivity
        implements NavigationView.OnNavigationItemSelectedListener
@@ -112,13 +118,21 @@ public class MainActivity extends AppCompatActivity
     private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 0;
     private Query query;
     private  SwipeRefreshLayout refreshListener;
-    private AsyncTask Backtask;
+
+    private DistanceMap TimeFetching;
+    private boolean flag=true;
+    private String Time="";
+    private ProgressDialog progressDialog;
+    private static String origin_address;
+    private static String destination_address;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         refreshListener=findViewById(R.id.swiperefresh);
+
 
 
         mFirebseAuth = FirebaseAuth.getInstance();
@@ -137,7 +151,10 @@ public class MainActivity extends AppCompatActivity
                         Intent intent = new Intent(MainActivity.this, FormActivity.class);
                         startActivity(intent);
                     } else {
-                        Toast.makeText(MainActivity.this, "You're now signed in. Welcome to My Safety app .", Toast.LENGTH_SHORT).show();
+                        if(flag) {
+                            Toast.makeText(MainActivity.this, "You're now signed in. Welcome to My Safety app .", Toast.LENGTH_SHORT).show();
+                            flag=false;
+                        }
                         Display_data();
                         QueryAddress();
 
@@ -149,7 +166,7 @@ public class MainActivity extends AppCompatActivity
                                     .setIsSmartLockEnabled(false)
                                     .setAvailableProviders(
                                             Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
-                                                    new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build())).build(),
+                                                    new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build())).setTheme(R.style.LoginTheme).setLogo(R.drawable.ic_launcherp).build(),
                             RC_SIGN_IN);
 
 
@@ -443,32 +460,67 @@ public class MainActivity extends AppCompatActivity
 
 
     @Override
-    public synchronized void onClick(Current_Location location) {
-        LatLng latLng = new LatLng(Double.parseDouble(location.getLatitude())
-                , Double.parseDouble(location.getLongitude()));
-        mlatitude_tar = latLng.latitude;
-        mlongitude_tar = latLng.longitude;
-        String uid = location.getMuid();
-        String status = location.getMstatus();
-
-        String compare = "Not Accepted";
-        if (status.equals(compare)) {
+    public synchronized void onClick(final Current_Location location) throws InterruptedException {
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if(TimeFetching!=null)
+            TimeFetching=null;
+        TimeFetching =new DistanceMap(this);
+        if (networkInfo != null && networkInfo.isConnected()) {
 
 
+            LatLng latLng = new LatLng(Double.parseDouble(location.getLatitude())
+                    , Double.parseDouble(location.getLongitude()));
+            mlatitude_tar = latLng.latitude;
+            mlongitude_tar = latLng.longitude;
+            final String uid = location.getMuid();
+            String status = location.getMstatus();
 
 
-            String new_status = "Request is Accepted by " + user.getDisplayName()+" " + "From  " + pAddress;
-            String message="Your Request is accepted by Police officer "+user.getDisplayName()+" From "+pAddress;
-            location.setMstatus(new_status);
-            mFirebaseDatabase.getReference().child("DATA").child(uid).setValue(location);
-            Smsutilites.sendmessage(this,message,location.getMphone_no());
-            Toast.makeText(getApplicationContext(), "Location is set", Toast.LENGTH_LONG).show();
+
+            String compare = "Not Accepted";
 
 
-        } else {
+           if (status.equals(compare)) {
+               progressDialog = ProgressDialog.show(this, "Please wait.",
+                       "Fetching data!", true);
 
-            Toast.makeText(getApplicationContext(), "Not Called", Toast.LENGTH_LONG).show();
+               TimeFetching.setUpdateListener(new DistanceMap.OnUpdateListener() {
+                   @Override
+                   public void onUpdate(String time) {
 
+                       if(time.equals(" ") && time==null)
+                             time="30 min";
+
+
+                       origin_address=TimeFetching.origin_address;
+                       destination_address=TimeFetching.destination_address;
+                       String new_status = "Request is Accepted by " + user.getDisplayName() + " " + "From  " + pAddress +" And it will take "+time;
+                       String message = "Your Request is accepted by Police officer " + user.getDisplayName() + " From " + pAddress+" And it will take "+time;
+                       location.setMstatus(new_status);
+                       mFirebaseDatabase.getReference().child("DATA").child(uid).setValue(location);
+                       progressDialog.dismiss();
+                       Smsutilites.sendmessage(getApplication(), message, location.getMphone_no());
+                       Toast.makeText(getApplicationContext(), "Location", Toast.LENGTH_LONG).show();
+
+                          TimeFetching.cancel(false);
+
+                   }
+               });
+
+               TimeFetching.execute(getPostion(),getCurrentLat_Long());
+
+
+
+            } else {
+
+                Toast.makeText(getApplicationContext(), "Already Accepted", Toast.LENGTH_LONG).show();
+
+            }
+
+        }else {
+
+            Toast.makeText(MainActivity.this,"Your Device is not Connected to Internet",Toast.LENGTH_LONG).show();
         }
     }
 
@@ -556,6 +608,44 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+
+
+private void showTimeFetchDialog(){
+
+    AlertDialog.Builder builder=new AlertDialog.Builder(this);
+    builder.setMessage("Fetch Time");
+    builder.setPositiveButton("Fetch",new DialogInterface.OnClickListener(){
+
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i) {
+
+
+        }
+    });
+    builder.setNegativeButton("Cancel",new DialogInterface.OnClickListener(){
+
+
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i) {
+            if(dialogInterface!=null)
+            {
+                dialogInterface.dismiss();
+            }
+        }
+    });
+
+    AlertDialog alertDialog=builder.create();
+    alertDialog.show();
+}
+
+    public static String[] getAddress(){
+
+        String[] address=new String[1];
+        address[0]=origin_address;
+        address[1]=destination_address;
+
+        return address;
+    }
 
 
 

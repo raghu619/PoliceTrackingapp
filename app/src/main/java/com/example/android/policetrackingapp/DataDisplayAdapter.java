@@ -5,8 +5,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.example.android.policetrackingapp.Map.DistanceMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.nearby.messages.Distance;
 
 import java.util.ArrayList;
 
@@ -22,8 +26,11 @@ public class DataDisplayAdapter  extends RecyclerView.Adapter<DataDisplayAdapter
     private final DataDisplayAdapterOnClickHandler mClickHandler;
 
 
+
+
+
     public interface DataDisplayAdapterOnClickHandler {
-        void onClick(Current_Location location);
+        void onClick(Current_Location location) throws InterruptedException;
     }
 
     @Override
@@ -57,6 +64,7 @@ public class DataDisplayAdapter  extends RecyclerView.Adapter<DataDisplayAdapter
         this.mClickHandler=mClickHandler;
         mContext=context;
 
+
     }
 
     class DataDisplayAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
@@ -73,6 +81,7 @@ public class DataDisplayAdapter  extends RecyclerView.Adapter<DataDisplayAdapter
             Addressview=itemView.findViewById(R.id.addresstext);
             Timeview=itemView.findViewById(R.id.timetext);
             StatusView=itemView.findViewById(R.id.statusview);
+
             itemView.setOnClickListener(this);
         }
 
@@ -82,7 +91,12 @@ public class DataDisplayAdapter  extends RecyclerView.Adapter<DataDisplayAdapter
             mCurrentdata=arrayList.get(adapterPosition);
 
 
-            mClickHandler.onClick(mCurrentdata);
+
+            try {
+                mClickHandler.onClick(mCurrentdata);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
 
         }

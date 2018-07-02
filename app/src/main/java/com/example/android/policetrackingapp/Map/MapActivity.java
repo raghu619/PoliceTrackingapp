@@ -5,6 +5,8 @@ import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
@@ -28,6 +30,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -44,6 +47,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +59,9 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     private static final int LOCATION_REQUEST = 500;
     private static final int LOCATION_REQUEST2= 501;
     private  LatLng Source1;
+    private String  origin_address;
+    private String  destination_address;
+
 
     ArrayList<LatLng> listPoints;
      private  FusedLocationProviderClient mFusedLocationClient;
@@ -106,17 +113,21 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         }
         mMap.setMyLocationEnabled(true);
         LatLng destination=MainActivity.getCurrentLat_Long();
+        Source1=MainActivity.getPostion();
+        setAddress(Source1,destination);
 
 
-        LatLng source=new LatLng ( Double.parseDouble("19.2251"), Double.parseDouble("73.1642"));
         MarkerOptions markerOptions2 = new MarkerOptions();
-        markerOptions2.position(destination);
+        markerOptions2.position(destination).title(destination_address);
 
         mMap.addMarker(markerOptions2);
 
         MarkerOptions markerOptions = new MarkerOptions();
-        Source1=MainActivity.getPostion();
-        markerOptions.position(Source1);
+
+        markerOptions.position(Source1).title(origin_address);
+
+
+
 
 
         mMap.addMarker(markerOptions);
@@ -303,6 +314,38 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
             }
 
         }
+    }
+
+    private void setAddress(LatLng origin,LatLng dest){
+
+        Geocoder geocoder=new Geocoder(this);
+        try{
+            List<Address> addressList1=geocoder.getFromLocation(origin.latitude,origin.longitude,1);
+            origin_address=addressList1.get(0).getSubLocality()+"|";
+            origin_address+=addressList1.get(0).getLocality()+"|";
+
+
+            origin_address+=addressList1.get(0).getCountryName();
+
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+
+        try{
+            List<Address>addressList2=geocoder.getFromLocation(dest.latitude,dest.longitude,1);
+            destination_address=addressList2.get(0).getSubLocality()+"|";
+            destination_address+=addressList2.get(0).getLocality()+"|";
+
+            destination_address+=addressList2.get(0).getCountryName();
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+
+
+
+
     }
 
 
